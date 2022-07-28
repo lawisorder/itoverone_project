@@ -8,41 +8,37 @@ import json
 
 
 def get_pages():
-    # создаем словарь заголовков. необходим для работы и создания илюзии того, что в адрес сайта обращается человек, а не бот
+
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
     }
 
-    # req = requests.get(url="https://swisstime.by/catalog/filter/gender-is-muzhskie/apply/", headers=headers)
-    #
-    # if not os.path.exists("data"):
-    #     os.mkdir("data")
-    #
-    # with open("data/page_1.html", "w", encoding="UTF-8") as file:
-    #     file.write(req.text)
+    req = requests.get(url="https://swisstime.by/catalog/filter/gender-is-muzhskie/apply/", headers=headers)
 
-    #
+    if not os.path.exists("data"):
+        os.mkdir("data")
+
+    with open("data/page_1.html", "w", encoding="UTF-8") as file:
+        file.write(req.text)
+
+
     with open("data/page_1.html", encoding="UTF-8") as file:
         src = file.read()
 
-    # создаем объект soup
+
     soup = BeautifulSoup(src, "lxml")
-    # инструмент для обработки страниц. сайт содержит 45 страниц с информацией. инструмент позволяет автоматически пройти все страницы по очереди
     pages_count = int(soup.find("li", class_="pagination-item pages col-06").find_all("a")[-2].text)
 
-     # обрабатываем информацию. цифра 3 указана для проверки работоспособности кода. для получения всей информации необхоимо указать pages_count
-    for i in range(1, 3):
+    for i in range(1, pages_count+1):
         url = f"https://swisstime.by/catalog/filter/gender-is-muzhskie/apply/?PAGEN_1={i}"
 
-        # создаем и отправляем запрос в адрес сайта, результат которого записываем в виде страницы
         r = requests.get(url=url, headers=headers)
         with open(f"data/page_{i}.html", "w", encoding="UTF-8") as file:
             file.write(r.text)
 
-        # задаем временной интервал между запросами. необходим для получения обратной информации и исключения отправления сайту множества запросов
-        time.sleep(2.5)
+        time.sleep(2)
 
-    return pages_count + 1
+    return pages_count
 
 
 def collect_options(pages_count):
@@ -59,7 +55,7 @@ def collect_options(pages_count):
         )
 
     data = []
-    for page in range(1, 3):
+    for page in range(1, pages_count+1):
         with open(f"data/page_{page}.html", encoding="UTF-8") as file:
             src = file.read()
 
@@ -83,7 +79,7 @@ def collect_options(pages_count):
                 }
             )
 
-            with open("data_1.csv", "a", encoding="UTF-8") as file:
+            with open("data/data_1.csv", "a", encoding="UTF-8") as file:
                 writer = csv.writer(file)
                 writer.writerow(
                     (
@@ -94,15 +90,16 @@ def collect_options(pages_count):
                     )
                 )
 
-        print(f"[INFO] In process... The {page}/5 page has done")
 
-    with open("parsing.json", "a", encoding="UTF-8") as file:
+    with open("data/parsing.json", "a", encoding="UTF-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
+    print(f"The work has done")
 
 def main():
     pages_count = get_pages()
     collect_options(pages_count=pages_count)
+
 
 
 if __name__ == '__main__':
