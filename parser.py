@@ -8,7 +8,6 @@ import json
 
 
 def get_pages():
-
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
     }
@@ -21,15 +20,13 @@ def get_pages():
     with open("data/page_1.html", "w", encoding="UTF-8") as file:
         file.write(req.text)
 
-
     with open("data/page_1.html", encoding="UTF-8") as file:
         src = file.read()
-
 
     soup = BeautifulSoup(src, "lxml")
     pages_count = int(soup.find("li", class_="pagination-item pages col-06").find_all("a")[-2].text)
 
-    for i in range(1, pages_count+1):
+    for i in range(1, pages_count + 1):
         url = f"https://swisstime.by/catalog/filter/gender-is-muzhskie/apply/?PAGEN_1={i}"
 
         r = requests.get(url=url, headers=headers)
@@ -42,8 +39,7 @@ def get_pages():
 
 
 def collect_options(pages_count):
-
-    with open("data_1.csv", "w", encoding="UTF-8") as file:
+    with open("data_results.csv", "w", encoding="UTF-8") as file:
         writer = csv.writer(file)
         writer.writerow(
             (
@@ -55,7 +51,7 @@ def collect_options(pages_count):
         )
 
     data = []
-    for page in range(1, pages_count+1):
+    for page in range(1, pages_count + 1):
         with open(f"data/page_{page}.html", encoding="UTF-8") as file:
             src = file.read()
 
@@ -79,7 +75,7 @@ def collect_options(pages_count):
                 }
             )
 
-            with open("data/data_1.csv", "a", encoding="UTF-8") as file:
+            with open("data_results.csv", "a", encoding="UTF-8") as file:
                 writer = csv.writer(file)
                 writer.writerow(
                     (
@@ -90,16 +86,15 @@ def collect_options(pages_count):
                     )
                 )
 
-
-    with open("data/parsing.json", "a", encoding="UTF-8") as file:
+    with open("parsing_results.json", "a", encoding="UTF-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
     print(f"The work has done")
 
+
 def main():
     pages_count = get_pages()
     collect_options(pages_count=pages_count)
-
 
 
 if __name__ == '__main__':
